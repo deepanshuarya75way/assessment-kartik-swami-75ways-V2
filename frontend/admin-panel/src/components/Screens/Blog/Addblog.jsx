@@ -202,6 +202,7 @@ function AddBlog({ onSubmit, onClose, blogToEdit, show }) {
       description,
       category: cat,
       tags: tags,
+      scheduledAt: formData.scheduledAt || null,
       status,
       image: uploadedImageUrl || (blogToEdit ? blogToEdit.image : null)
     };
@@ -306,6 +307,17 @@ blogToEdit ? toast.success('Blog updated Successfully') : toast.success('Blog ad
             <option value="✅Published">✅Published</option>
             <option value="❌Unpublished">❌Unpublished</option>
           </select>
+
+          <label
+            style={{ marginTop: '10px'}}>
+              Publish Date & Time (Optional):
+          </label>
+          <input
+          type="datetime-local"
+          name='scheduledAt'
+          onChange={valueupdate}
+          style={{width: '100%', padding: '8px', border: '1px solid #ccc', borderRadius: '4px'}}>
+          </input>
 
           <label style={{ marginTop: '14px' }}>Description:</label>
           <ReactQuill

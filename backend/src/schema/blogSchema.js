@@ -29,6 +29,15 @@ const blogSchema = new mongoose.Schema({
     enum: ["✅Published", "❌Unpublished"],
     default: "✅Published"
   },
+  scheduledAt: { 
+    type : Date, 
+    default : null
+  },
+  versions: {
+    type : Array, 
+    default :[]
+  },
+
   createdAt: {
     type: Date,
     default: Date.now

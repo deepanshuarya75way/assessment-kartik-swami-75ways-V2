@@ -16,18 +16,38 @@ function Blog() {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showDescriptionPopup, setShowDescriptionPopup] = useState(false);
-
   const searchTerm = useContext(SearchContext);
   const { isAdmin } = useContext(AuthContext);  
+  const [historyBlog, setHistoryBlog] = useState(null);
+
 
   const fetchBlogs = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/blogs`);
+      const res = await axios.get(`${API_BASE_URL}/api/blogs?all=true`);
       setBlogs(res.data);
     } catch (err) {
       console.error('Failed to fetch blogs', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+
+    const handleRestore = async (oldVersion)=> {
+    try{
+      await axios.put(`${API_BASE_URL}/api/blogs/update/${historyBlog._id}`,{
+        text: oldVersion.text,
+        description: oldVersion.description,
+        image: oldVersion.image,
+        status: oldVersion.status,
+        category: oldVersion.category || (historyBlog.category._id || historyBlog.category),
+        tags: Array.isArray(oldVersion.tags) ? oldVersion.tags.map(t => t.name || t).join(',') :''
+      });
+      toast.success("restoration success");
+      setHistoryBlog(null);
+      fetchBlogs();
+    }catch (err){
+      toast.error("restoration failed");
     }
   };
 
@@ -160,6 +180,12 @@ function Blog() {
                         setSelectedBlog(blog);
                         setShowForm(true);
                       }}></i>
+                      <i
+                      className="fas fa-history action-icon"
+                      title="History"
+                      style={{color: '#f2ad0c'}}
+                      onClick={()=> setHistoryBlog(blog)}
+                      ></i>
 
                       <i className="fas fa-trash action-icon" title="Delete" onClick={() => handleDelete(blog._id)}></i>
                     </div>
@@ -236,6 +262,33 @@ function Blog() {
           </div>
         </div>
       )}
+
+{historyBlog && (
+        <div className="description-only-popup-overlay"> {/* Add a new class for styling */}
+          <div className="description-only-popup-content">
+            <button
+              className="close-description-popup-button"
+              onClick={() => {
+                setHistoryBlog(null); 
+              }}
+            >
+              ×
+            </button>
+            <h3>Version History: {historyBlog.text}</h3> 
+            <div
+             style={{maxHeight: '300px', overflowY: 'auto'}}
+            >
+              {historyBlog.versions?.map((v, i)=> (
+                <div key={i} style={{borderBottom: '1px solid #ccc', padding: '8px 0', display: 'flex', justifyContent: 'space-between'}}>
+                  <span>{new Date(v.savedAt).toLocaleTimeString()}-{v.text}</span>
+                  <button onClick={() => handleRestore(v)} style={{cursor: 'pointer'}}>Restore</button>
+                  </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

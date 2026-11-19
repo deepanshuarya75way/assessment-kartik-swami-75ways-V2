@@ -16,7 +16,12 @@ export default function Blogs() {
       try {
          const res = await fetch(`${baseURL}/api/blogs`);
         const data = await res.json();
-        setBlogs(data);
+
+        const visibleBlogs = (Array.isArray(data)? data : []).filter(b =>
+          !b.scheduleAt || new Date(b.scheduleAt) <= new Date()
+        );
+        setBlogs(visibleBlogs);
+
       } catch (err) {
         console.error("Failed to fetch blogs:", err);
         setBlogs([]); // Ensure blogs is an empty array on error

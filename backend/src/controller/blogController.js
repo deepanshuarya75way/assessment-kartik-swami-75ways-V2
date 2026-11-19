@@ -1,3 +1,4 @@
+const mongoose = require('moongose');
 const Blog = require("../schema/blogSchema");
 const Category = require("../schema/categorySchema");
 const Tag = require("../schema/tagsSchema");
@@ -91,6 +92,11 @@ exports.createBlog = async (req, res) => {
 // Get All Blogs
 exports.getAllBlogs = async (req, res) => {
     try {
+        
+        const filter = req.query.all === 'true' ? {}:{
+            $or:[{scheduledAt:null}, {scheduledAt:{ $lte:new Date()}}]
+        };
+
         const blogs = await Blog.find()
             .populate("category", "name")
             .populate("tags", "name")
@@ -156,29 +162,48 @@ exports.deleteBlog = async (req, res) => {
 exports.updateBlog = async (req, res) => {
     try {
         // 'image' is now directly from req.body, containing the Firebase URL
-        const { text, description, category, tags, status, image } = req.body; 
+        const { text, description, category, tags, status, image, scheduleAt, isRestore } = req.body; 
 
-        const blog = await Blog.findById(req.params.id);
+        const blog = await Blog.findById(req.params.id).populate("category", "name").populate("tags", "name");
         if (!blog) {
             return res.status(404).json({ message: "Blog not found" });
         }
 
         const newTagIds = await getTagIdsFromNames(tags);
 
-        const oldTagIdsFromBlog = Array.isArray(blog.tags) ? blog.tags.map(id => id.toString()) : [];
+        const oldTagIdsFromBlog = Array.isArray(blog.tags) ? blog.tags.map(t => (t._id || t).toString()) : [];
 
         await adjustPostCounts(
-            blog.category ? blog.category.toString() : null,
+            blog.category ? (blog.category._id || blog.category).toString() : null,
             category,
             oldTagIdsFromBlog,
             newTagIds
         );
 
+      if (!isRestore) {
+    blog.versions = blog.versions || [];
+
+    blog.versions.push({
+        text: blog.text,
+        description: blog.description,
+        image: blog.image,
+        status: blog.status,
+        category: blog.category?._id || blog.category,
+        tags: Array.isArray(blog.tags)
+            ? blog.tags.map(t => t.name).join(',')
+            : '',
+        savedAt: new Date()
+    });
+
+    }
         blog.text = text;
         blog.description = description;
         blog.category = category;
         blog.tags = newTagIds;
         blog.status = status;
+        
+        if (req.body.scheduledAt !==undefined) blog.scheduledAt = req.body.scheduledAt;
+
         // Update image only if a new image URL is provided (i.e., user uploaded a new image)
         // If image is an empty string or null from frontend, it means no new image was uploaded
         if (image) blog.image = image; 
