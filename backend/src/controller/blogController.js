@@ -3,7 +3,7 @@ const Blog = require("../schema/blogSchema");
 const Category = require("../schema/categorySchema");
 const Tag = require("../schema/tagsSchema");
 
-// Helper to convert tag names to ObjectIds
+// Helper to convert tag names 
 const getTagIdsFromNames = async (tagNames) => {
     if (!tagNames) return [];
     if (typeof tagNames === 'string') {
