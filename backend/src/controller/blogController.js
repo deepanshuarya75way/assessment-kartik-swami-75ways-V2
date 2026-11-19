@@ -1,4 +1,4 @@
-const mongoose = require('moongose');
+const mongoose = require('mongoose');
 const Blog = require("../schema/blogSchema");
 const Category = require("../schema/categorySchema");
 const Tag = require("../schema/tagsSchema");
@@ -11,7 +11,14 @@ const getTagIdsFromNames = async (tagNames) => {
     }
     if (!Array.isArray(tagNames) || tagNames.length === 0) return [];
 
-    const tagDocs = await Tag.find({ name: { $in: tagNames } });
+    const tagDocs = await Tag.find({ 
+    //-----
+    $or: [
+        {name: { $in : tagNames}},
+        {_id:{$in: tagNames.filter(id=> typeof id === 'string' && id.match(/^[0-9a-fA-F] {24}$/))}}
+    ]});
+
+      
     return tagDocs.map(tag => tag._id);
 };
 
@@ -57,7 +64,7 @@ exports.getBlogsCount = async (req, res) => {
 exports.createBlog = async (req, res) => {
     try {
         // 'image' is now directly from req.body, containing the Firebase URL
-        const { text, description, category, tags, status, image } = req.body; 
+        const { text, description, category, tags, status, image, scheduledAt } = req.body; 
 
         // Validation adjusted: 'image' is now expected as a string (URL)
         if (!text || !description || !category || !status || !image) {
@@ -72,7 +79,9 @@ exports.createBlog = async (req, res) => {
             category,
             tags: tagIds,
             status,
-            image, // 'image' directly stores the Firebase URL
+            image, 
+            scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+            versions: []
         });
 
         await blog.save();
@@ -180,7 +189,7 @@ exports.updateBlog = async (req, res) => {
             newTagIds
         );
 
-      if (!isRestore) {
+      if (!req.body.isRestore) {
     blog.versions = blog.versions || [];
 
     blog.versions.push({
@@ -202,7 +211,7 @@ exports.updateBlog = async (req, res) => {
         blog.tags = newTagIds;
         blog.status = status;
         
-        if (req.body.scheduledAt !==undefined) blog.scheduledAt = req.body.scheduledAt;
+        if (req.body.scheduledAt !==undefined) blog.scheduledAt = req.body.scheduledAt ? new Date(req.body.scheduledAt) : null;
 
         // Update image only if a new image URL is provided (i.e., user uploaded a new image)
         // If image is an empty string or null from frontend, it means no new image was uploaded

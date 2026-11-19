@@ -18,7 +18,7 @@ export default function Blogs() {
         const data = await res.json();
 
         const visibleBlogs = (Array.isArray(data)? data : []).filter(b =>
-          !b.scheduleAt || new Date(b.scheduleAt) <= new Date()
+          !b.scheduledAt || new Date(b.scheduledAt) <= new Date()
         );
         setBlogs(visibleBlogs);
 

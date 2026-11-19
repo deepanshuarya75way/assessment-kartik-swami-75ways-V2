@@ -70,7 +70,7 @@ console.log("BASE URL:", import.meta.env.VITE_API_URL);
         
         setServices(servicesData.services);
         setFaqs(faqsData);
-        setBlogs(blogsData); // NEW: Set blogs state
+        setBlogs(blogsData.filter(b => !b.scheduledAt || new Date(b.scheduledAt)<= new Date())); // NEW: Set blogs state
 
         if (searchQuery && servicesSectionRef.current) {
           servicesSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });

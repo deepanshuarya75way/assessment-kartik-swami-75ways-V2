@@ -56,7 +56,9 @@ function AddBlog({ onSubmit, onClose, blogToEdit, show }) {
           ? blogToEdit.tags.map(tag => tag.name).join(',')
           : '',
         status: blogToEdit.status || '✅Published',
-        description: blogToEdit.description || ''
+        description: blogToEdit.description || '',
+        //---
+        scheduledAt: blogToEdit.scheduledAt ? new Date(blogToEdit.scheduledAt).toISOString().slice(0,16): ''
       });
       setValue(blogToEdit.description || '');
       setUploadedImageUrl(blogToEdit.image || '');
@@ -68,7 +70,8 @@ function AddBlog({ onSubmit, onClose, blogToEdit, show }) {
         cat: '',
         tags: '',
         status: '✅Published',
-        description: ''
+        description: '',
+        scheduledAt:''
       });
       setValue('');
       setUploadedImageUrl('');

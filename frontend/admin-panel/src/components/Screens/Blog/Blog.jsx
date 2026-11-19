@@ -41,7 +41,8 @@ function Blog() {
         image: oldVersion.image,
         status: oldVersion.status,
         category: oldVersion.category || (historyBlog.category._id || historyBlog.category),
-        tags: Array.isArray(oldVersion.tags) ? oldVersion.tags.map(t => t.name || t).join(',') :''
+        tags: oldVersion.tags || '',
+        isRestored: true
       });
       toast.success("restoration success");
       setHistoryBlog(null);
@@ -170,7 +171,15 @@ function Blog() {
                   </td>
                   <td><span className="badge category">{blog.category?.name || 'N/A'}</span></td>
                   <td><span className="badge tag">{blog.tags?.map(tag => tag.name).join(', ') || 'No Tags'}</span></td>
-                  <td><span className="badge status">{blog.status}</span></td>
+                  <td><span className="badge status">{blog.status}</span>
+                  
+                  {blog.scheduledAt && (
+                    <div style={{fontSize: '11px', color: '#d97706', marginTop: '4px', fontWeight: 600}}>
+                  @ {new Date(blog.scheduledAt).toDateString()}
+                  </div>
+                )}
+
+                  </td>
                   <td>
                     <div className='action-icons'>
                       <i className="fas fa-eye action-icon" title='View' onClick={() => { setSelectedBlog(blog); setViewBlog(true); }}></i>
